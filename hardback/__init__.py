@@ -37,7 +37,7 @@ def decode(s):
         v = 0L
         for c in ins:
             if c not in DE_ALPHA:
-                raise RuntimeError, 'invalid character'
+                raise RuntimeError, "invalid character '%s'" % c
             v <<= 5
             v |= DE_ALPHA[c]
         for i in range(5):
