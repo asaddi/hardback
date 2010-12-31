@@ -7,43 +7,32 @@ import cStringIO as StringIO
 
 from . import *
 
-WIDTH = 87
 
-BUF_SIZE = 1000 # Must be divisible by 5
+WIDTH = 80
 
 
 def enc_main(infile, outfile):
-    h1 = hashlib.md5()
-    h2 = hashlib.sha1()
-    inp_len = 0
-    inp = infile.read(BUF_SIZE)
-    out = StringIO.StringIO()
-    while inp:
-        h1.update(inp)
-        h2.update(inp)
-        inp_len += len(inp)
-        out.write(encode(inp))
-        inp = infile.read(BUF_SIZE)
-    out = out.getvalue()
+    inp = infile.read()
+    h1 = hashlib.md5(inp)
+    h2 = hashlib.sha1(inp)
+    out = encode(inp, width=WIDTH)
 
-    while out:
-        outfile.write(out[:WIDTH] + '\n')
-        out = out[WIDTH:]
-    outfile.write('# length: %s, alphabet: %s\n# md5: %s, sha1: %s\n' % (inp_len, ALPHA, h1.hexdigest(), h2.hexdigest()))
+    for line in out:
+        outfile.write(line + '\n')
+    outfile.write('# length: %s, alphabet: %s\n# md5: %s, sha1: %s\n' % (len(inp), ALPHA, h1.hexdigest(), h2.hexdigest()))
 
 
 def dec_main(infile, outfile, out_len):
-    inp = []
+    lines = []
     for line in infile:
         line = line.strip()
         if line.startswith('#'): continue
-        inp.append(line)
-    inp = ''.join(inp)
+        lines.append(line)
 
-    out = decode(inp)
+    out = decode(lines, out_len)
 
     if len(out) < out_len:
-        raise RuntimeError, 'input not long enough'
+        raise Error, 'input not long enough'
 
     out = out[:out_len]
 
@@ -68,7 +57,7 @@ def main():
             dec_main(args.input, args.output, args.decode_len)
         else:
             enc_main(args.input, args.output)
-    except Exception as e:
+    except Error as e:
         sys.exit(str(e))
 
 
