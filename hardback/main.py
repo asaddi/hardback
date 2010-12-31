@@ -19,7 +19,7 @@ def enc_main(infile, outfile):
 
     for line in out:
         outfile.write(line + '\n')
-    outfile.write('# length: %s, alphabet: %s\n# md5: %s, sha1: %s\n' % (len(inp), ALPHA, h1.hexdigest(), h2.hexdigest()))
+    outfile.write('# length: %s, alphabet: %s, CRC-32 poly: 0x4C11DB7\n# md5: %s, sha1: %s\n' % (len(inp), ALPHA, h1.hexdigest(), h2.hexdigest()))
 
 
 def dec_main(infile, outfile, out_len):
