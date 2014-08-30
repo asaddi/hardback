@@ -41,16 +41,16 @@ class Error(Exception):
 def raw_encode(s):
     out = io.StringIO()
     while s:
-        ins = (s[:5] + b'\x00' * 4)[:5]
+        ins = s[:5].ljust(5, b'\0')
         s = s[5:]
-        ins = [x for x in ins]
+        ins = list(ins)
         ins.reverse()
         v = 0
         for x in ins:
             v <<= 8
             v |= x
         for i in range(8):
-            out.write(ALPHA[v & 0x1F])
+            out.write(ALPHA[v & 0x1f])
             v >>= 5
     return out.getvalue()
 
@@ -71,9 +71,9 @@ def encode(s, width=80):
 def raw_decode(s):
     out = io.BytesIO()
     while s:
-        ins = (s[:8] + '0' * 7)[:8]
+        ins = s[:8].ljust(8, '0')
         s = s[8:]
-        ins = [x for x in ins]
+        ins = list(ins)
         ins.reverse()
         v = 0
         for c in ins:
@@ -81,9 +81,11 @@ def raw_decode(s):
                 raise Error("invalid character '%s'" % c)
             v <<= 5
             v |= DE_ALPHA[c]
+        b = []
         for i in range(5):
-            out.write(bytes((v & 0xFF,)))
+            b.append(v & 0xff)
             v >>= 8
+        out.write(bytes(b))
     return out.getvalue()
 
 
