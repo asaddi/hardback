@@ -16,7 +16,6 @@
 import sys
 import argparse
 import hashlib
-import cStringIO as StringIO
 
 from . import *
 
@@ -25,7 +24,7 @@ WIDTH = 80
 
 
 def enc_main(infile, outfile):
-    inp = infile.read()
+    inp = infile.buffer.read()
     h1 = hashlib.md5(inp)
     h2 = hashlib.sha1(inp)
     out = encode(inp, width=WIDTH)
@@ -45,7 +44,7 @@ def dec_main(infile, outfile, out_len):
     out = decode(lines, out_len)
 
     if len(out) < out_len:
-        raise Error, 'input not long enough'
+        raise Error('input not long enough')
 
     out = out[:out_len]
 
@@ -54,7 +53,7 @@ def dec_main(infile, outfile, out_len):
     h1.update(out)
     h2.update(out)
 
-    outfile.write(out)
+    outfile.buffer.write(out)
     sys.stderr.write('# md5: %s, sha1: %s\n' % (h1.hexdigest(), h2.hexdigest()))
 
 
