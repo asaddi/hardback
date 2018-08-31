@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import io
-from zlib import crc32
 import struct
 
 
@@ -80,14 +79,14 @@ def encode(s, width=80):
         ins = s[:width]
         s = s[width:]
         crc = crc_update(ins, crc)
-        out.append(raw_encode(ins) + raw_encode(struct.pack(CRC_FORMAT, crc & 0xfffff))[:-4])
+        out.append(raw_encode(ins) + raw_encode(struct.pack(CRC_FORMAT, crc & 0xfffff))[:-4]) # NB magic number based on raw encoded CRC length
     return out
 
 
 def raw_decode(s):
     out = io.BytesIO()
     while s:
-        ins = s[:8].ljust(8, 'y')
+        ins = s[:8].ljust(8, ALPHA[0])
         s = s[8:]
         ins = list(ins)
         ins.reverse()
@@ -131,7 +130,7 @@ def decode(lines, length):
 
         crc = crc_update(dec_line, crc)
 
-        dec_crc = struct.unpack(CRC_FORMAT, dec_crc[:-1])[0]
+        dec_crc = struct.unpack(CRC_FORMAT, dec_crc[:-1])[0] # NB magic number based on raw decoded CRC length
         if crc != dec_crc:
             raise Error('CRC error at line %s' % lineNo)
 
