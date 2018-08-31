@@ -20,13 +20,13 @@ import struct
 __all__ = ['ALPHA', 'Error', 'encode', 'decode']
 
 
-ALPHA = '0123456789ACDEFGHJKLMNPRSTUVWXYZ'
+ALPHA = 'ybndrfg8ejkmcpqxot1uwisza345h769'
 DE_ALPHA = {}
 for i in range(len(ALPHA)):
     DE_ALPHA[ALPHA[i]] = i
 
-# 32-bit CRC fits in 7 encoded characters (35-bits)
-ENCODED_CRC_LEN = 7
+# 20-bit CRC fits in 4 encoded characters
+ENCODED_CRC_LEN = 4
 
 # Smallest encode output (8 chars) + encoded CRC
 MIN_LINE_LEN = 8+ENCODED_CRC_LEN
@@ -55,6 +55,22 @@ def raw_encode(s):
     return out.getvalue()
 
 
+# CRC-20 with poly 0x1c4047
+# Detects errors (up to and including Hamming distance 6)
+# in 494 bits of data. Good enough for us (400 bits).
+def crc_update(data, crc=0):
+    for c in data:
+        for i in (0x80, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1):
+            bit = (crc & 0x80000) != 0
+            if (c & i) != 0:
+                bit = not bit
+            crc <<= 1
+            if bit:
+                crc ^= 0xc4047
+        crc &= 0xfffff
+    return crc & 0xfffff
+
+
 def encode(s, width=80):
     assert width % 8 == 0
     width = width * 5 // 8
@@ -63,15 +79,15 @@ def encode(s, width=80):
     while s:
         ins = s[:width]
         s = s[width:]
-        crc = crc32(ins, crc)
-        out.append(raw_encode(ins) + raw_encode(struct.pack(CRC_FORMAT, crc & 0xffffffff))[:-1])
+        crc = crc_update(ins, crc)
+        out.append(raw_encode(ins) + raw_encode(struct.pack(CRC_FORMAT, crc & 0xfffff))[:-4])
     return out
 
 
 def raw_decode(s):
     out = io.BytesIO()
     while s:
-        ins = s[:8].ljust(8, '0')
+        ins = s[:8].ljust(8, 'y')
         s = s[8:]
         ins = list(ins)
         ins.reverse()
@@ -113,7 +129,7 @@ def decode(lines, length):
 
         length -= len(dec_line)
 
-        crc = crc32(dec_line, crc)
+        crc = crc_update(dec_line, crc)
 
         dec_crc = struct.unpack(CRC_FORMAT, dec_crc[:-1])[0]
         if crc != dec_crc:

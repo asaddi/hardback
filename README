@@ -16,18 +16,18 @@ I wanted something different because:
 - I was only interested in archiving small files (1-2 kilobytes).
 
 hardback's encoding scheme is quite straightforward. It uses a base-32
-encoding to encode raw data. The base-32 alphabet is taken from all numbers
-and 22 uppercase letters. (The 4 letters omitted are B, I, Q, O, which might
-easily confuse OCR programs or even humans.)
+encoding to encode raw data. The base-32 alphabet is the same as
+z-base-32 [4]_ and thus is made up of all numbers and lowercase
+letters, omitting '0', 'l', 'v', and '2'.
 
-Each line is protected with a CRC-32 run over the current line and all
-previous lines. The CRC is encoded as 7 base-32 characters at the end of
-the line. The MD5 and SHA-1 hashes of the overall file are also part of
-the output, though they are not used by the program when decoding.
+Each line is protected with a CRC-20 run over the current line and all
+previous lines. The CRC is encoded as 4 base-32 characters at the end of
+the line. The SHA-256 hashe of the overall file are also part of
+the output, though it is not used by the program when decoding.
 
 Finally, the only round-trip testing I've done is as follows:
 
-  hardback -> enscript -> PostScript -> JPEG -> GOCR [4]_ -> hardback
+  hardback -> enscript -> PostScript -> JPEG -> GOCR [5]_ -> hardback
 
 In other words, I have not actually tried scanning a printed document and
 decoding the result! (Mainly because I don't own a functioning scanner!)
@@ -41,7 +41,8 @@ GnuPG keys and other files.
 .. [1] http://www.ollydbg.de/Paperbak/index.html
 .. [2] http://www.jabberwocky.com/software/paperkey/
 .. [3] http://ronja.twibright.com/optar/
-.. [4] http://jocr.sourceforge.net/
+.. [4] https://philzimmermann.com/docs/human-oriented-base-32-encoding.txt
+.. [5] http://jocr.sourceforge.net/
 
 Usage
 -----

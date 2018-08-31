@@ -25,13 +25,12 @@ WIDTH = 80
 
 def enc_main(infile, outfile):
     inp = infile.buffer.read()
-    h1 = hashlib.md5(inp)
-    h2 = hashlib.sha1(inp)
+    h1 = hashlib.sha256(inp)
     out = encode(inp, width=WIDTH)
 
     for line in out:
         outfile.write(line + '\n')
-    outfile.write('# length: %s, alphabet: %s, CRC-32 poly: 0x4C11DB7\n# md5: %s, sha1: %s\n' % (len(inp), ALPHA, h1.hexdigest(), h2.hexdigest()))
+    outfile.write('# length: {}\n# alphabet: {}, CRC-20 poly: 0x1c4047, check: 0xa5448\n# sha256: {}\n'.format(len(inp), ALPHA, h1.hexdigest()))
 
 
 def dec_main(infile, outfile, out_len):
@@ -48,13 +47,10 @@ def dec_main(infile, outfile, out_len):
 
     out = out[:out_len]
 
-    h1 = hashlib.md5()
-    h2 = hashlib.sha1()
-    h1.update(out)
-    h2.update(out)
+    h1 = hashlib.sha256(out)
 
     outfile.buffer.write(out)
-    sys.stderr.write('# md5: %s, sha1: %s\n' % (h1.hexdigest(), h2.hexdigest()))
+    sys.stderr.write('# sha256: {}\n'.format(h1.hexdigest()))
 
 
 def main():
